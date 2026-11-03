@@ -1,7 +1,12 @@
 import logging
 import os
+import shutil
+import traceback
+import uuid
+from typing import List
 
 from fastapi import FastAPI
+from starlette.datastructures import UploadFile
 from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
@@ -32,5 +37,35 @@ def main():
     return RedirectResponse("/view/upload.html")
 
 @app.post("/upload")
-def upload():
-    pass
+def upload(files: List[UploadFile]):
+    msg = "파일 업로드 실패"
+
+    if not files or all(file.filename == "" for file in files):
+        logger.warning("업로드된 파일이 없습니다.")
+        return {"message" : "업로드할 파일을 1개이상 선택해주세요."}
+
+    try:
+        for file in files:
+            logger.info(f"file name : {file.filename}")
+            ori_filename = file.filename
+
+            # 1. 파일명과 확장자 분리
+            name, ext = os.path.splitext(ori_filename) # ext : 확장자
+            logger.info(f"파일명 : {name}, 확장자 : {ext}")
+
+            # 2. 파일명 변경 + 3. 바꾼 파일명과 확장자 합치기
+            new_filename = f"{uuid.uuid4()}{ext}"
+            logger.info(f"새 파일명 : {new_filename}")
+
+            # 4. 파일 저장
+            save_path = f"{FILE_PATH}/{new_filename}"
+            with open(save_path, "wb") as file_object:
+                # shutil : 파일과 폴더를 복사, 이동, 삭제하는 고수준 도구 모음
+                shutil.copyfileobj(file.file, file_object)
+
+            msg = "파일 업로드 완료"
+    except Exception as e:
+        logger.error(e)
+        logger.error(traceback.format_exc())
+
+    return {"message" : msg}
