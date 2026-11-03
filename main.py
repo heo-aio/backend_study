@@ -18,3 +18,11 @@ def get_user(user_id: int):
 def search(keyword: str, limit: int = 10):
     return {"keyword" : keyword, "limit" : limit}
 
+@app.get("/books/{book_id}")
+def get_book(book_id: int, detail: bool = False):
+    result = {"book_id" : book_id}
+    if detail:
+        result["detail"] = detail
+    return result
+
+
