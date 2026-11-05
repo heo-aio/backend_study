@@ -6,7 +6,7 @@ import uuid
 from typing import List
 
 from fastapi import FastAPI, UploadFile
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 
 app = FastAPI()
@@ -83,4 +83,10 @@ def delete(filename: str):
         os.remove(path)
     return RedirectResponse("/view/file_list.html")
 
-
+@app.get("/download")
+def download(filename: str):
+    path = f"{FILE_PATH}/{filename}"
+    if os.path.exists(path):
+        return FileResponse(path, filename=filename, media_type="application/octet-stream")
+    else:
+        return {"msg" : "해당 파일이 존재하지 않습니다"}
