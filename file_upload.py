@@ -85,8 +85,9 @@ def delete(filename: str):
 
 @app.get("/download")
 def download(filename: str):
+    filename = os.path.basename(filename)
     path = f"{FILE_PATH}/{filename}"
-    if os.path.exists(path):
+    if os.path.isfile(path):
         return FileResponse(path, filename=filename, media_type="application/octet-stream")
     else:
         return {"msg" : "해당 파일이 존재하지 않습니다"}
