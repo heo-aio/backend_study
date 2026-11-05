@@ -5,8 +5,7 @@ import traceback
 import uuid
 from typing import List
 
-from fastapi import FastAPI
-from starlette.datastructures import UploadFile
+from fastapi import FastAPI, UploadFile
 from starlette.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
@@ -69,3 +68,11 @@ def upload(files: List[UploadFile]):
         logger.error(traceback.format_exc())
 
     return {"message" : msg}
+
+@app.get("/files")
+def files():
+    # os.listdir : 특정 경로 파일 리스트 가져올 수 있음
+    file_list = os.listdir(FILE_PATH)
+    logger.info(file_list)
+    return {"올라와 있는 파일:" : file_list}
+
