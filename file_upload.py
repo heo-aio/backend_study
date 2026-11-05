@@ -76,3 +76,11 @@ def files():
     logger.info(file_list)
     return {"올라와 있는 파일:" : file_list}
 
+@app.get("/delete")
+def delete(filename: str):
+    path = f"{FILE_PATH}/{filename}"
+    if os.path.exists(path):
+        os.remove(path)
+    return RedirectResponse("/view/file_list.html")
+
+
