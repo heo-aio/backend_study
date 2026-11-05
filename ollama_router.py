@@ -1,4 +1,4 @@
-from typing import Dict, Any
+import logging
 
 from fastapi import APIRouter
 from langchain_core.output_parsers import StrOutputParser
@@ -8,10 +8,14 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/ask", tags=["ask"])
 
+logger = logging.getLogger(__name__)
+
 class Question(BaseModel):
     q: str
 
-llm_model = ChatOllama(model="gemma4:e4b")
+MODEL_NAME = "gemma4:e4b"
+llm_model = ChatOllama(model=MODEL_NAME)
+logger.info(f"LLM 모델 준비: {MODEL_NAME}")
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", "당신은 사용자가 물어보는 질문에 친절히 답변해주는 IT분야 전문가입니다. 알기 쉽게 예시를 포함해 답을 해주세요."),
@@ -22,7 +26,13 @@ chain = prompt | llm_model | StrOutputParser()
 
 @router.post("/batch")
 def get_answer(question: Question):
-    answer = chain.invoke({"topic": question.q})
+    logger.info(f"질문 수신 : {question.q[:50]}")
+
+    try:
+        answer = chain.invoke({"topic": question.q})
+    except Exception as e:
+        logger.error(e)
+        return {"answer" : "답변 생성 중 오류가 발생했습니다."}
+
+    logger.info(f"답변완료 ({len(answer)}자)")
     return {"answer": answer}
-
-
