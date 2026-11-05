@@ -6,6 +6,7 @@ import uuid
 from typing import List
 
 from fastapi import FastAPI, UploadFile
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse, FileResponse
 from starlette.staticfiles import StaticFiles
 
@@ -31,6 +32,8 @@ if not os.path.exists(FILE_PATH):
 app.mount("/view", StaticFiles(directory="view"))
 app.mount("/images", StaticFiles(directory=FILE_PATH))
 
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
+
 @app.get("/")
 def main():
     return RedirectResponse("/view/upload.html")
@@ -41,7 +44,7 @@ def upload(files: List[UploadFile]):
 
     if not files or all(file.filename == "" for file in files):
         logger.warning("업로드된 파일이 없습니다.")
-        return {"message" : "업로드할 파일을 1개이상 선택해주세요."}
+        return {"msg" : "업로드할 파일을 1개이상 선택해주세요."}
 
     try:
         for file in files:
@@ -62,24 +65,25 @@ def upload(files: List[UploadFile]):
                 # shutil : 파일과 폴더를 복사, 이동, 삭제하는 고수준 도구 모음
                 shutil.copyfileobj(file.file, file_object)
 
-            msg = "파일 업로드 완료"
+            msg = "파일 업로드 성공"
     except Exception as e:
         logger.error(e)
         logger.error(traceback.format_exc())
 
-    return {"message" : msg}
+    return {"msg" : msg}
 
 @app.get("/files")
 def files():
     # os.listdir : 특정 경로 파일 리스트 가져올 수 있음
     file_list = os.listdir(FILE_PATH)
     logger.info(file_list)
-    return {"올라와 있는 파일:" : file_list}
+    return {"files" : file_list}
 
 @app.get("/delete")
 def delete(filename: str):
+    filename = os.path.basename(filename)
     path = f"{FILE_PATH}/{filename}"
-    if os.path.exists(path):
+    if os.path.isfile(path):
         os.remove(path)
     return RedirectResponse("/view/file_list.html")
 
