@@ -31,7 +31,7 @@ def get_answer(question: Question):
     try:
         answer = chain.invoke({"topic": question.q})
     except Exception as e:
-        logger.error(e)
+        logger.exception("LLM호출 실패")
         return {"answer" : "답변 생성 중 오류가 발생했습니다."}
 
     logger.info(f"답변완료 ({len(answer)}자)")
